@@ -1,0 +1,454 @@
+# rdpfree-workflow-schema: 5
+name: RdpFree — RDP 24 Jam
+
+on:
+  workflow_dispatch:
+    inputs:
+      durasi_menit:
+        description: 'Durasi sesi (menit, 10–360)'
+        required: false
+        default: '360'
+        type: string
+      hostname:
+        description: 'Prefix hostname VM'
+        required: false
+        default: 'rdpfree'
+        type: string
+      rdp_user:
+        description: 'Username RDP (3–20 karakter, walang spasi)'
+        required: false
+        default: 'kate_lopez'
+        type: string
+      akses:
+        description: 'Jalur akses ke RDP (tailscale disarankan)'
+        required: false
+        default: 'tailscale'
+        type: choice
+        options: [tailscale, portmap, railway]
+      portmap_host:
+        description: 'Host tunnel publik (opsional)'
+        required: false
+        default: ''
+        type: string
+      portmap_port:
+        description: 'Port publik tunnel'
+        required: false
+        default: ''
+        type: string
+      storage_boost:
+        description: 'Bersihkan toolcache'
+        required: false
+        default: 'ya'
+        type: choice
+        options: [ya, tidak]
+      debloat:
+        description: 'Mode pembersihan'
+        required: false
+        default: 'ringan'
+        type: choice
+        options: [ringan, full, tidak]
+      samp:
+        description: 'Pasang runtime GTA SA'
+        required: false
+        default: 'ya'
+        type: choice
+        options: [ya, tidak]
+      samp_antiban:
+        description: 'Reset GPCI/HWID'
+        required: false
+        default: 'tidak'
+        type: choice
+        options: [ya, tidak]
+      fps_boost:
+        description: 'Boost FPS'
+        required: false
+        default: 'ya'
+        type: choice
+        options: [ya, tidak]
+      mumu:
+        description: 'Pasang MuMu Player 12'
+        required: false
+        default: 'tidak'
+        type: choice
+        options: [ya, tidak]
+      win10:
+        description: 'Tampilan Windows 10'
+        required: false
+        default: 'ya'
+        type: choice
+        options: [ya, tidak]
+      xydesk:
+        description: 'Optimasi host XyDesk'
+        required: false
+        default: 'ya'
+        type: choice
+        options: [ya, tidak]
+      ekstra:
+        description: 'Aplikasi ekstra'
+        required: false
+        default: 'ya'
+        type: choice
+        options: [ya, tidak]
+      grafis:
+        description: 'Akselerasi OpenGL 4.6 (Mesa3D)'
+        required: false
+        default: 'software'
+        type: choice
+        options: [software, tidak]
+      runner:
+        description: 'OS Runner'
+        required: false
+        default: 'windows-2022'
+        type: choice
+        options:
+          - windows-2022
+          - windows-2025
+          - windows-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-latest
+      linux_mode:
+        description: 'Mode Linux'
+        required: false
+        default: 'desktop'
+        type: choice
+        options: [desktop, polos]
+      microphone:
+        description: 'Aktifkan mikrofon RDP'
+        required: false
+        default: 'ya'
+        type: choice
+        options: [ya, tidak]
+      roblox:
+        description: 'Siapkan installer Roblox'
+        required: false
+        default: 'tidak'
+        type: choice
+        options: [ya, tidak]
+      minecraft_java:
+        description: 'Pasang Minecraft Java'
+        required: false
+        default: 'tidak'
+        type: choice
+        options: [ya, tidak]
+      minecraft_bedrock:
+        description: 'Pasang Minecraft Bedrock'
+        required: false
+        default: 'tidak'
+        type: choice
+        options: [ya, tidak]
+      perpanjang_otomatis:
+        description: 'Auto-renew sesi'
+        required: false
+        default: 'ya'
+        type: choice
+        options: [ya, tidak]
+      discord:
+        description: 'Pasang Discord'
+        required: false
+        default: 'tidak'
+        type: choice
+        options: [ya, tidak]
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: rdpfree-active-session
+  cancel-in-progress: false
+
+jobs:
+  rdp:
+    name: Sesi RDP (${{ inputs.runner || 'windows-2022' }})
+    runs-on: ${{ inputs.runner || 'windows-2022' }}
+    timeout-minutes: 360
+    env:
+      DUR: ${{ inputs.durasi_menit || '360' }}
+      HOSTNAME: ${{ inputs.hostname || 'rdpfree' }}
+      RDP_USER: ${{ inputs.rdp_user || 'kate_lopez' }}
+      RDP_PASSWORD: ${{ secrets.RDP_PASSWORD }}
+      AKSES: ${{ inputs.akses || 'tailscale' }}
+      TAILSCALE_AUTH_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
+      STORAGE_BOOST: ${{ inputs.storage_boost || 'ya' }}
+      DEBLOAT: ${{ inputs.debloat || 'ringan' }}
+      SAMP: ${{ inputs.samp || 'ya' }}
+      SAMP_ANTIBAN: ${{ inputs.samp_antiban || 'tidak' }}
+      FPS_BOOST: ${{ inputs.fps_boost || 'ya' }}
+      MUMU: ${{ inputs.mumu || 'tidak' }}
+      PORTMAP_HOST: ${{ inputs.portmap_host || '' }}
+      PORTMAP_PORT: ${{ inputs.portmap_port || '' }}
+      PORTMAP_OVPN_CONFIG: ${{ secrets.PORTMAP_OVPN_CONFIG }}
+      WIN10: ${{ inputs.win10 || 'ya' }}
+      XYDESK: ${{ inputs.xydesk || 'ya' }}
+      EKSTRA: ${{ inputs.ekstra || 'ya' }}
+      GRAFIS: ${{ inputs.grafis || 'software' }}
+      LINUX_MODE: ${{ inputs.linux_mode || 'desktop' }}
+      MICROPHONE: ${{ inputs.microphone || 'ya' }}
+      ROBLOX: ${{ inputs.roblox || 'tidak' }}
+      MINECRAFT_JAVA: ${{ inputs.minecraft_java || 'tidak' }}
+      MINECRAFT_BEDROCK: ${{ inputs.minecraft_bedrock || 'tidak' }}
+      DISCORD: ${{ inputs.discord || 'tidak' }}
+      PERPANJANG_OTOMATIS: ${{ inputs.perpanjang_otomatis || 'ya' }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ==========================================
+      # LINUX STEPS
+      # ==========================================
+      - name: Setup dasar RDP & Akses Linux
+        if: ${{ startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: bash
+        run: |
+          chmod +x ./scripts/setup-linux-rdp.sh
+          ./scripts/setup-linux-rdp.sh --setup-only
+
+      - name: Jaga sesi tetap hidup [Linux]
+        if: ${{ startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: bash
+        run: ./scripts/setup-linux-rdp.sh --keepalive-only
+
+      - name: Finalize [Linux]
+        if: ${{ always() && startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: bash
+        continue-on-error: true
+        run: ./scripts/setup-linux-rdp.sh --finalize-only
+
+      # ==========================================
+      # WINDOWS STEPS
+      # ==========================================
+      - name: Bypass Restrictions (Windows)
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        run: |
+          Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+          Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -Value 0
+          Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name "UserAuthentication" -Value 0
+          Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+
+      - name: Bersihkan run lama
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/cleanup-actions.ps1
+
+      - name: Setup dasar RDP (Windows)
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        run: ./scripts/setup-rdp.ps1
+
+      - name: Force Allow RDP Firewall
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        run: |
+          netsh advfirewall firewall add rule name="Open RDP" dir=in action=allow protocol=TCP localport=3389
+          netsh advfirewall firewall add rule name="Allow Tailscale" dir=in action=allow protocol=any remoteip=100.64.0.0/10
+
+      - name: Pulihkan simpanan sesi
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/restore-state.ps1
+
+      - name: Optimasi storage
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && ((inputs.storage_boost || 'ya') != 'tidak' || (inputs.debloat || 'ringan') != 'tidak') }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/optimize-storage.ps1
+
+      - name: Boost FPS
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.fps_boost || 'ya') != 'tidak' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-fps-boost.ps1
+
+      - name: Tampilan Windows 10
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.win10 || 'ya') != 'tidak' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-win10.ps1
+
+      - name: Tweak Explorer
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+          ./scripts/setup-explorer.ps1
+          Start-Process explorer.exe
+
+      - name: Audio RDP
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.microphone || 'ya') != 'tidak' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-media.ps1
+
+      - name: Grafis Mesa3D
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.grafis || 'software') != 'tidak' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-grafis.ps1
+
+      - name: Runtime SAMP
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.samp || 'ya') != 'tidak' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-samp.ps1
+
+      - name: Anti-Ban SAMP
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.samp_antiban || 'tidak') == 'ya' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-samp-antiban.ps1
+
+      - name: Pasang Games
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-games.ps1
+
+      - name: Pasang Prism & GraalVM (Queenkiwi)
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $prismUrl = "https://github.com/PrismLauncher/PrismLauncher/releases/download/8.4/PrismLauncher-Windows-MSVC-Setup-8.4.exe"
+          Invoke-WebRequest -Uri $prismUrl -OutFile "$env:TEMP\PrismSetup.exe"
+          $javaUrl = "https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_windows-x64_bin.zip"
+          Invoke-WebRequest -Uri $javaUrl -OutFile "$env:TEMP\graalvm.zip"
+          Start-Process -FilePath "$env:TEMP\PrismSetup.exe" -ArgumentList "/S" -Wait
+          Expand-Archive -Path "$env:TEMP\graalvm.zip" -DestinationPath "C:\GraalVM" -Force
+
+      - name: Pasang MuMu
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.mumu || 'tidak') == 'ya' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-mumu.ps1
+
+      - name: Aplikasi ekstra
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.ekstra || 'ya') != 'tidak' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-extras.ps1
+
+      - name: XyDeskTools
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-tools-hub.ps1
+
+      - name: Host XyDesk
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.xydesk || 'ya') != 'tidak' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-xydesk.ps1
+
+      # ==========================================
+      # AUTO DOWNLOAD STARDESK (BAGONG DAGDAG)
+      # ==========================================
+      - name: Auto Download & Install StarDesk
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Write-Host "Mengunduh StarDesk..."
+          # PALITAN MO ITO kung may specific direct link ka ng StarDesk
+          $starDeskUrl = "https://api.stardesk.net/api/v1/release/dl/1?channel=official" 
+          $installerPath = "$env:TEMP\StarDeskSetup.exe"
+          try {
+              Invoke-WebRequest -Uri $starDeskUrl -OutFile $installerPath -UseBasicParsing
+              Write-Host "Installing StarDesk silently..."
+              Start-Process -FilePath $installerPath -ArgumentList "/S" -Wait
+              Write-Host "StarDesk installed successfully."
+          } catch {
+              Write-Host "Failed to download or install StarDesk. Check URL."
+          }
+
+      - name: Setup Tailscale
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.akses || 'tailscale') == 'tailscale' }}
+        shell: pwsh
+        run: ./scripts/setup-akses.ps1
+
+      - name: Setup Portmap
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.akses || 'tailscale') != 'tailscale' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-public-tunnel.ps1
+
+      - name: Pasang Discord
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') && (inputs.discord || 'tidak') == 'ya' }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/setup-discord.ps1
+
+      - name: Publish status
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/publish-status.ps1
+
+      - name: Info Koneksi (IP & User)
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $akses = "${{ inputs.akses || 'tailscale' }}"
+          $user = "${{ inputs.rdp_user || 'kate_lopez' }}"
+          $ip = "Belum terdeteksi"
+          
+          if ($akses -eq 'tailscale') {
+            $tsPath = "C:\Program Files\Tailscale\tailscale.exe"
+            if (Test-Path $tsPath) {
+              $ip = & $tsPath ip -4
+            } else {
+              $ip = "Cek log 'Setup Tailscale' di atas"
+            }
+          } else {
+            $ip = "${{ inputs.portmap_host }}"
+          }
+          echo "### 🔗 RDP Connection Info" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| **IP / Host** | ``$ip`` |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| **Username** | ``$user`` |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| **Password** | *(GitHub Secrets)* |" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Keepalive (Tahan 6 Jam)
+        if: ${{ !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        run: ./scripts/keepalive.ps1
+
+      - name: Simpan sesi
+        if: ${{ always() && !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/persist-state.ps1
+
+      - name: Upload simpanan
+        if: ${{ always() && !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: xyrdp-state
+          path: C:\XyRDP\persist\xyrdp-state.zip
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Finalize
+        if: ${{ always() && !startsWith(inputs.runner || 'windows-2022', 'ubuntu') }}
+        shell: pwsh
+        continue-on-error: true
+        run: ./scripts/finalize-rdp.ps1
+
+      - name: Auto-Renew (Estafet)
+        if: ${{ (inputs.perpanjang_otomatis || 'ya') != 'tidak' }}
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $hdr = @{ Authorization = "Bearer $($env:GITHUB_TOKEN)"; Accept = 'application/vnd.github+json'; 'X-GitHub-Api-Version' = '2022-11-28' }
+          $body = @{ ref = 'main'; inputs = @{ durasi_menit = "$($env:DUR)"; hostname = "$($env:HOSTNAME)"; rdp_user = "$($env:RDP_USER)"; akses = "$($env:AKSES)"; storage_boost = "$($env:STORAGE_BOOST)"; debloat = "$($env:DEBLOAT)"; samp = "$($env:SAMP)"; samp_antiban = "$($env:SAMP_ANTIBAN)"; fps_boost = "$($env:FPS_BOOST)"; mumu = "$($env:MUMU)"; portmap_host = "$($env:PORTMAP_HOST)"; portmap_port = "$($env:PORTMAP_PORT)"; win10 = "$($env:WIN10)"; xydesk = "$($env:XYDESK)"; ekstra = "$($env:EKSTRA)"; grafis = "$($env:GRAFIS)"; runner = "${{ inputs.runner || 'windows-2022' }}"; linux_mode = "$($env:LINUX_MODE)"; microphone = "$($env:MICROPHONE)"; roblox = "$($env:ROBLOX)"; minecraft_java = "$($env:MINECRAFT_JAVA)"; minecraft_bedrock = "$($env:MINECRAFT_BEDROCK)"; discord = "$($env:DISCORD)"; perpanjang_otomatis = "$($env:PERPANJANG_OTOMATIS)" } } | ConvertTo-Json -Depth 5
+          try { Invoke-RestMethod -Uri "https://api.github.com/repos/$($env:GITHUB_REPOSITORY)/actions/workflows/rdp-6h.yml/dispatches" -Headers $hdr -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 20 | Out-Null } catch {}
